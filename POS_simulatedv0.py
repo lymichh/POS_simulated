@@ -41,7 +41,7 @@ class Proceso:
  
         self.estado = "Terminado"
         print(f"\r  [{'█' * pasos}] 100%")
-        print(f"  ✔  Proceso '{self.nombre}' finalizado - Estado: {self.estado}")
+        print(f"\n  ✔  Proceso '{self.nombre}' finalizado - Estado: {self.estado}")
 
 # Planificador (Scheduler) fifo
 class Planificador:
@@ -83,9 +83,9 @@ class Planificador:
         print()
         titulo("Ejecución Completa")
         print(f"  ✔  Todos los procesos han finalizado.")
-        print("  ▶  Orden de ejecución:")
+        print("     Orden de ejecución:")
         for pos, proceso in enumerate(self.procesos_ejecutados, start=1):
-            print(f"  {pos}. {proceso.nombre} (ID: {proceso.id})")
+            print(f"    {pos}. {proceso.nombre} (ID: {proceso.id})")
 
 # Simulación de memoria
 mem_total = 512 # MB
@@ -136,7 +136,17 @@ def interfaz_usuario():
 
         if opcion == '1':
             titulo("Crear Proceso")
-            id_proceso = input("Introduce ID del proceso: ")
+            while True:
+                id_proceso = input("Introduce ID del proceso: ").strip()
+                if not id_proceso.isdigit():
+                    print("  ⚠  El ID debe ser un número entero.")
+                    print()
+                elif any(p.id == id_proceso for p in planificador.cola):
+                    print(f"  ⚠  El ID {id_proceso} ya existe. Por favor, elige otro.")
+                    print()
+                else:
+                    break
+
             nombre = input("Introduce nombre del proceso: ")
             tiempo_ejecucion = random.randint(1, 5)
             proceso = Proceso(id_proceso, nombre, tiempo_ejecucion)

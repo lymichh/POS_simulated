@@ -157,7 +157,7 @@ def interfaz_usuario():
             planificador.mostrar_cola()
 
         elif opcion == '3':
-            titulo("Ejecutar Procesos")
+            print()
             planificador.ejecutar()
 
         elif opcion == '4':

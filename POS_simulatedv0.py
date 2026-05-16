@@ -91,22 +91,148 @@ class Planificador:
 mem_total = 512 # MB
 
 class Memoria:
-    def __init__(self):
-        self.memoria = {}
 
+    def __init__(self,mem_total):
+
+        self.mem_total=mem_total
+
+        self.memoria=[{
+            "inicio":0,
+            "tamaño":mem_total,
+            "proceso":None
+        }]
+
+    #Mostrar el estado actual de la memoria
+    def mostrar_memoria(self):
+        
+        titulo("Estado de la memoria")
+
+        usada = sum(bloque["tamaño"] for bloque in self.memoria 
+                    if bloque["proceso"] is not None)
+        
+        libre=self.mem_total-usada
+
+        print(f"  ▶  Memoria total: {self.mem_total} MB")
+        print(f"  ▶  Memoria usada: {usada} MB")
+        print(f"  ▶  Memoria libre: {libre} MB")
+
+        separador()
+
+        print("  Bloques de memoria:\n")
+        print("   [ Dirección de Memoria | Estado | Tamaño ]")
+
+        for bloque in self.memoria:
+
+            inicio = bloque["inicio"]
+            fin = inicio + bloque["tamaño"] - 1
+
+            if bloque["proceso"] is None:
+                print(f"   [ {inicio} - {fin} | LIBRE | {bloque['tamaño']} MB ]")
+            else:
+                print(f"   [ {inicio} - {fin} | Proceso {bloque['proceso']} | {bloque['tamaño']} MB ]")
+
+        separador()
+
+    #Asignacion de memoria mediante el algoritmo First Fit
     def asignar_memoria(self, id_proceso, tamaño):
-        if id_proceso in self.memoria:
-            print(f"Memoria ya asignada al proceso {id_proceso}.")
-        else:
-            self.memoria[id_proceso] = tamaño
-            print(f"Memoria asignada al proceso {id_proceso}, tamaño: {tamaño} MB.")
+
+        # evitar duplicados
+        for bloque in self.memoria:
+            if bloque["proceso"] == id_proceso:
+                print()
+                print(f"  ⚠  El proceso {id_proceso} ya tiene memoria asignada.")
+                return
+
+        # recorrer bloques de memoria, buscando el primero libre y con tamaño suficiente
+        for i, bloque in enumerate(self.memoria):
+
+            libre = bloque["proceso"] is None
+            suficiente = bloque["tamaño"] >= tamaño
+
+            if libre and suficiente:
+
+                print()
+                print(f"  ▶  Aplicando algoritmo First Fit...")
+                print(
+                    f"     Bloque encontrado: "
+                    f"{bloque['tamaño']} MB disponibles."
+                )
+
+                tamaño_restante = bloque["tamaño"] - tamaño
+
+                # asignar bloque al proceso
+                self.memoria[i] = {
+                    "inicio": bloque["inicio"],
+                    "tamaño": tamaño,
+                    "proceso": id_proceso
+                }
+
+                # si sobra espacio se crea nuevo bloque libre
+                if tamaño_restante > 0:
+
+                    nuevo_bloque = {
+                        "inicio": bloque["inicio"] + tamaño,
+                        "tamaño": tamaño_restante,
+                        "proceso": None
+                    }
+
+                    self.memoria.insert(i + 1, nuevo_bloque)
+
+                print()
+                print(f"  ✔  Memoria asignada correctamente.")
+                print(f"     Proceso ID: {id_proceso}")
+                print(f"     Tamaño asignado: {tamaño} MB")
+
+                #Se termina la ejecucion de la funcion despues de encontrar y asignar un bloque
+                return
+            
+        # No se encontro un bloque contiguo con suficiente espacio para el proceso
+        print()
+        print(f"  ✖  No existe un bloque contiguo suficiente.")
+        print(f"     Proceso ID: {id_proceso}")
+        print(f"     Memoria solicitada: {tamaño} MB")
 
     def liberar_memoria(self, id_proceso):
-        if id_proceso in self.memoria:
-            del self.memoria[id_proceso]
-            print(f"Memoria liberada para el proceso {id_proceso}.")
-        else:
-            print(f"No se encontró memoria asignada al proceso {id_proceso}.")
+        for i, bloque in enumerate(self.memoria):
+
+            if bloque["proceso"] == id_proceso:
+
+                tamaño_liberado = bloque["tamaño"]
+
+                print()
+                print(f"  ▶  Liberando memoria del proceso {id_proceso}...")
+
+                # convertir bloque en libre
+                self.memoria[i]["proceso"] = None
+
+                # fusionar bloques libres consecutivos
+                self.fusionar_bloques()
+
+                print()
+                print(f"  ✔  Memoria liberada correctamente.")
+                print(f"     Memoria liberada: {tamaño_liberado} MB")
+
+                return
+
+        print()
+        print(f"  ⚠  No se encontro memoria asignada al proceso {id_proceso}.")
+    
+    # fusionar bloques libres consecutivos y actualizar estado de la memoria
+    def fusionar_bloques(self):
+
+        nuevoEstado_mem = []
+
+        for bloque in self.memoria:
+
+            if (nuevoEstado_mem and nuevoEstado_mem[-1]["proceso"] is None and bloque["proceso"] is None):
+
+                # unir bloques libres
+                nuevoEstado_mem[-1]["tamaño"] += bloque["tamaño"]
+
+            else:
+                nuevoEstado_mem.append(bloque)
+
+        self.memoria = nuevoEstado_mem
 
 def menu():
     print("""
@@ -128,7 +254,7 @@ def interfaz_usuario():
     print(f"  ▶  Memoria total disponible: {mem_total} MB")
     print()
     planificador = Planificador()
-    memoria = Memoria()
+    memoria = Memoria(mem_total)
 
     while True:
         menu()

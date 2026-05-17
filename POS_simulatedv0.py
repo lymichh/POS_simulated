@@ -63,7 +63,7 @@ class Planificador:
             print(f"  {pos}. {proceso.nombre} (ID: {proceso.id} - Tiempo: {proceso.tiempo_ejecucion}s - Estado: {proceso.estado})")
         separador()
 
-    def ejecutar(self):
+    def ejecutar(self,memoria):
         titulo("Ejecución FIFO")
         if not self.cola:
             print("  ⚠  No hay procesos para ejecutar.")
@@ -72,6 +72,14 @@ class Planificador:
         total = len(self.cola)
         print(f"  ▶  Procesos en cola: {total} - Algoritmo FIFO")
         turno = 1
+
+        #Revisar que todos los procesos en la cola tengan memoria asignada antes de ejecutar
+        for proceso in self.cola:
+            tiene_memoria = any(bloque["proceso"] == proceso.id for bloque in memoria.memoria)
+            if not tiene_memoria:
+                print()
+                print("  ✖  No todos los procesos tienen memoria asignada, no se puede ejecutar la cola de procesos.")
+                return
 
         while self.cola:
             proceso = self.cola.popleft() #toma el primero
@@ -135,7 +143,7 @@ class Memoria:
         separador()
 
     #Asignacion de memoria mediante el algoritmo First Fit
-    def asignar_memoria(self, id_proceso, tamaño):
+    def asignar_memoria(self, id_proceso, tamaño, planificador):
 
         # evitar duplicados
         for bloque in self.memoria:
@@ -143,6 +151,12 @@ class Memoria:
                 print()
                 print(f"  ⚠  El proceso {id_proceso} ya tiene memoria asignada.")
                 return
+        
+        #Revisar que el proceso exista en la cola de procesos antes de asignar memoria
+        if  not any(p.id == id_proceso for p in planificador.cola):
+            print()
+            print(f"  ⚠  El proceso {id_proceso} no existe en la cola de procesos.")
+            return
 
         # recorrer bloques de memoria, buscando el primero libre y con tamaño suficiente
         for i, bloque in enumerate(self.memoria):
@@ -285,7 +299,7 @@ def interfaz_usuario():
 
         elif opcion == '3':
             titulo("Ejecutar Procesos")
-            planificador.ejecutar()
+            planificador.ejecutar(memoria)
 
         elif opcion == '4':
             titulo("Asignar Memoria")
@@ -295,7 +309,7 @@ def interfaz_usuario():
                 if tamaño <= 0:
                     print("  ⚠  El tamaño debe ser mayor que 0.")
                 else:
-                    memoria.asignar_memoria(id_proceso, tamaño)
+                    memoria.asignar_memoria(id_proceso, tamaño,planificador)
                     memoria.mostrar_memoria()
             except ValueError:
                 print("  ⚠  Debes introducir un número válido.")

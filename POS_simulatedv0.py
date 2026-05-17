@@ -120,6 +120,7 @@ class Memoria:
 
         print("  Bloques de memoria:\n")
         print("   [ Dirección de Memoria | Estado | Tamaño ]")
+        print()
 
         for bloque in self.memoria:
 
@@ -288,17 +289,22 @@ def interfaz_usuario():
 
         elif opcion == '4':
             titulo("Asignar Memoria")
-            id_proceso = input("Introduce ID del proceso: ")
-            tamaño = int(input("Introduce el tamaño de memoria (MB): "))
-            while tamaño > mem_total:
-                print(f"  ⚠  El tamaño excede la memoria total disponible ({mem_total} MB). Intenta de nuevo.")
+            id_proceso = input("Introduce ID del proceso: ").strip()
+            try:
                 tamaño = int(input("Introduce el tamaño de memoria (MB): "))
-            memoria.asignar_memoria(id_proceso, tamaño)
+                if tamaño <= 0:
+                    print("  ⚠  El tamaño debe ser mayor que 0.")
+                else:
+                    memoria.asignar_memoria(id_proceso, tamaño)
+                    memoria.mostrar_memoria()
+            except ValueError:
+                print("  ⚠  Debes introducir un número válido.")
 
         elif opcion == '5':
             titulo("Liberar Memoria")
             id_proceso = input("Introduce ID del proceso: ")
             memoria.liberar_memoria(id_proceso)
+            memoria.mostrar_memoria()
 
         elif opcion == '6':
             titulo("Cerrando Simulador")

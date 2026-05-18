@@ -298,7 +298,6 @@ def interfaz_usuario():
             planificador.mostrar_cola()
 
         elif opcion == '3':
-            titulo("Ejecutar Procesos")
             planificador.ejecutar(memoria)
 
         elif opcion == '4':
@@ -309,7 +308,7 @@ def interfaz_usuario():
                 if tamaño <= 0:
                     print("  ⚠  El tamaño debe ser mayor que 0.")
                 else:
-                    memoria.asignar_memoria(id_proceso, tamaño,planificador)
+                    memoria.asignar_memoria(id_proceso, tamaño, planificador)
                     memoria.mostrar_memoria()
             except ValueError:
                 print("  ⚠  Debes introducir un número válido.")

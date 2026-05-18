@@ -302,7 +302,14 @@ def interfaz_usuario():
 
         elif opcion == '4':
             titulo("Asignar Memoria")
-            id_proceso = input("Introduce ID del proceso: ").strip()
+            while True:
+                id_proceso = input("Introduce ID del proceso: ").strip()
+                if not id_proceso.isdigit():
+                    print("  ⚠  El ID debe ser un número entero.")
+                    print()
+                else:
+                    break
+                
             try:
                 tamaño = int(input("Introduce el tamaño de memoria (MB): "))
                 if tamaño <= 0:
